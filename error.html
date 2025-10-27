@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Error</title>
+    <style>
+      .error {
+        height: 300px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="error">服务错误，正在重试...</div>
+    <script>
+      document.addEventListener('plusready', function () {
+        // 1. 获取当前WebView实例
+        const currentWebview = plus.webview.currentWebview()
+        // 2. 解析URL参数（错误码、错误信息、原URL）
+        const params = parseUrlParams(location.search)
+        const errorCode = params.code || 'ERROR'
+        const errorMsg = params.msg
+          ? decodeURIComponent(params.msg)
+          : '页面加载失败'
+        const originalUrl = params.url ? decodeURIComponent(params.url) : ''
+
+       
+        // 4. 重试按钮逻辑：重新加载原URL
+        document
+          .getElementById('retryBtn')
+          .addEventListener('click', function () {
+            if (originalUrl) {
+              // 重新加载原URL（成功后会覆盖错误页面）
+              currentWebview.loadURL(originalUrl)
+            } else {
+              // 无原URL时关闭当前WebView（可根据需求调整）
+              currentWebview.close()
+            }
+          })
+      })
+
+      // 工具函数：解析URL参数（如 ?code=404&url=https://xxx ）
+      function parseUrlParams(search) {
+        const params = {}
+        if (!search) return params
+        const query = search.slice(1) // 去掉开头的 "?"
+        query.split('&').forEach((pair) => {
+          const [key, value] = pair.split('=')
+          if (key) params[key] = value || ''
+        })
+        return params
+      }
+      function startServerCheck(url) {
+        let checkCount = 0 // 检测次数计数
+        const maxInterval = 10000 // 最大检测间隔（10秒）
+        let currentInterval = 1000 // 初始检测间隔（1秒）
+
+        // 检测服务器是否恢复可用
+        function checkServer() {
+          // 用HEAD请求轻量检测（比GET更高效，仅检查连接和状态码）
+          fetch(url, { method: 'HEAD' })
+            .then((response) => {
+              // 服务器返回200-299状态码：恢复可用
+              if (response.ok) {
+                // 重新加载错误页面所在的webview
+                plus.webview.getWebviewById('serverPage').reload()
+                window.location.href = `${url}/landscape.html`
+              } else {
+                // 服务器返回4xx/5xx（如启动中但未就绪）：继续检测
+                retryCheck()
+              }
+            })
+            .catch((error) => {
+              // 网络错误（如服务器未启动、端口未开放）：继续检测
+              retryCheck()
+            })
+        }
+
+        // 重试逻辑：间隔递增，避免频繁请求
+        function retryCheck() {
+          checkCount++
+          // 间隔递增（1s→2s→4s→8s→10s，之后保持10s间隔）
+          currentInterval = Math.min(currentInterval * 2, maxInterval)
+          setTimeout(checkServer, currentInterval)
+        }
+
+        // 启动首次检测
+        checkServer()
+      }
+    </script>
+  </body>
+</html>

@@ -12,153 +12,130 @@
     <div class="box-container">
       <div class="form">
         <input placeholder="MDC IP" class="input-item" id="IP" style="margin-bottom: 6px" />
-        <button class="btn" id="submit">提 交</button>
+        <button class="btn" id="submit">提 交1</button>
       </div>
     </div>
 
-    <script defer>
-      const submitBtn = document.getElementById('#submit')
-      const ipDom = document.getElementById('#IP')
-      submitBtn.addEventListener('click', function() {
-      const ipVal = ipDom.value
-      if (!ipVal) {
-        const selctIP = document.getElementById('scan').value
-        if (selctIP) {
-          vaildIP(selctIP)
-        } else {
-          return setErrorMsg(langKeys['请输入IP'])
-        }
-      }
-      if (!isValidIP(ipVal)) {
-        return setErrorMsg(langKeys['IP格式不正确'])
-      }
-      vaildIP(ipVal)
-      })
-      })
-
-      function vaildIP(val) {
-        checkUrlAvailability(`https://${val}/landscape.html`).then(
-          (isAvailable) => {
-            if (isAvailable) {
-              window.localStorage.setItem(cacheKey, val)
-              createServerWebview(val)
-              window.location.href = `https://${val}/landscape.html`
+    <script type='text/javascript'>
+      window.addEventListener('load', function() {
+        const submitBtn = document.getElementById('submit')
+        const ipDom = document.getElementById('IP')
+        submitBtn.addEventListener('click', function() {
+          const ipVal = ipDom.value
+          if (!ipVal) {
+            const selctIP = document.getElementById('scan').value
+            if (selctIP) {
+              vaildIP(selctIP)
             } else {
-              setErrorMsg(langKeys['IP不可用'])
+              return setErrorMsg(langKeys['请输入IP'])
             }
           }
-        )
-      }
-      async function checkUrlAvailability(url) {
-        try {
-          // 发送HEAD请求（比GET更轻量）
-          const response = await fetch(url, {
-            method: 'HEAD',
-            mode: 'no-cors',
-            cache: 'no-store',
-            timeout: 8000, // 超时
-          })
-
-          // 状态码2xx或3xx表示成功
-          return response.ok || response.status === 0
-        } catch (error) {
-          // 捕获网络错误、超时等异常
-          console.error('检测失败:', error)
-          return false
-        }
-      }
-      //-------------------------------------------------------------------------
-      let isChecking = false
-
-      function createServerWebview(ip) {
-        if (!window.plus) {
-          return false
-        }
-        const serverWebview = plus.webview.create(
-          `https://${ip}/landscape.html`,
-          'serverPage', {
-            cachemode: 2, // 禁用缓存，避免加载旧错误页面
-            scalable: true,
-            errorPage: 'www/error.html'
-          }
-        )
-        serverWebview.onerror = function(e) {
-          console.log('页面加载错误：', e.message)
-
-          // 若未在检测中，启动服务器状态检测
-          if (!isChecking) {
-            startServerCheck(serverWebview, `https://${ip}/landscape.html`)
-          }
-        }
-        serverWebview.show()
-      }
-
-      function startServerCheck(webview, url) {
-        isChecking = true
-        let checkCount = 0 // 检测次数计数
-        const maxInterval = 10000 // 最大检测间隔（10秒）
-        let currentInterval = 1000 // 初始检测间隔（1秒）
-
-        // 检测服务器是否恢复可用
-        function checkServer() {
-          // 用HEAD请求轻量检测（比GET更高效，仅检查连接和状态码）
-          fetch(url, {
-              method: 'HEAD'
-            })
-            .then((response) => {
-              // 服务器返回200-299状态码：恢复可用
-              if (response.ok) {
-                isChecking = false
-                // 自动刷新WebView（强制从服务器加载）
-                webview.reload(true)
-                // 刷新后监听加载成功，确保恢复
-                webview.addEventListener(
-                  'loaded',
-                  function onLoaded() {
-                    webview.removeEventListener('loaded', onLoaded) // 移除监听避免重复
-                  },
-                  false
-                )
-              } else {
-                // 服务器返回4xx/5xx（如启动中但未就绪）：继续检测
-                retryCheck()
-              }
-            })
-            .catch((error) => {
-              // 网络错误（如服务器未启动、端口未开放）：继续检测
-              retryCheck()
-            })
-        }
-
-        // 重试逻辑：间隔递增，避免频繁请求
-        function retryCheck() {
-          checkCount++
-          // 间隔递增（1s→2s→4s→8s→10s，之后保持10s间隔）
-          currentInterval = Math.min(currentInterval * 2, maxInterval)
-          setTimeout(checkServer, currentInterval)
-        }
-
-        // 启动首次检测
-        checkServer()
-      }
-      const scanner = new IPScanner('10.130.212.1', '10.130.212.255')
-      scanner.startScan((result) => {
-      const scanIP = document.getElementById('scanIP')
-      const ip = document.getElementById('IP')
-      if (result.length === 1) {
-        window.location.href = `https://${result[0].ip}/landscape.html`
-        ip.style.display = 'none'
-      } else if (result.length > 1) {
-        scanIP.style.display = 'block'
-        ip.style.display = 'none'
-        result.forEach((item) => {
-          scanIP.add(new Option(item.ip, item.ip))
+          vaildIP(ipVal)
         })
-      } else if (result.length === 0) {
-        scanIP.style.display = 'none'
-        ip.style.display = 'block'
-      }
-      })
+
+        function vaildIP(val) {
+          console.log(val)
+          checkUrlAvailability(`https://${val}/landscape.html`).then(
+            (isAvailable) => {
+              if (isAvailable) {
+                createServerWebview(val)
+                window.location.href = `https://${val}/landscape.html`
+              }
+            }
+          )
+        }
+        async function checkUrlAvailability(url) {
+          try {
+            // 发送HEAD请求（比GET更轻量）
+            const response = await fetch(url, {
+              method: 'HEAD',
+              mode: 'no-cors',
+              cache: 'no-store',
+              timeout: 8000, // 超时
+            })
+
+            // 状态码2xx或3xx表示成功
+            return response.ok || response.status === 0
+          } catch (error) {
+            // 捕获网络错误、超时等异常
+            console.error('检测失败:', error)
+            return false
+          }
+        }
+        //-------------------------------------------------------------------------
+        let isChecking = false
+
+        function createServerWebview(ip) {
+          if (!window.plus) {
+            return false
+          }
+          const serverWebview = plus.webview.create(
+            `https://${ip}/landscape.html`,
+            'serverPage', {
+              cachemode: 2, // 禁用缓存，避免加载旧错误页面
+              scalable: true,
+              errorPage: 'www/error.html'
+            }
+          )
+          serverWebview.onerror = function(e) {
+            console.log('页面加载错误：', e.message)
+
+            // 若未在检测中，启动服务器状态检测
+            if (!isChecking) {
+              startServerCheck(serverWebview, `https://${ip}/landscape.html`)
+            }
+          }
+          serverWebview.show()
+        }
+
+        function startServerCheck(webview, url) {
+          isChecking = true
+          let checkCount = 0 // 检测次数计数
+          const maxInterval = 10000 // 最大检测间隔（10秒）
+          let currentInterval = 1000 // 初始检测间隔（1秒）
+
+          // 检测服务器是否恢复可用
+          function checkServer() {
+            // 用HEAD请求轻量检测（比GET更高效，仅检查连接和状态码）
+            fetch(url, {
+                method: 'HEAD'
+              })
+              .then((response) => {
+                // 服务器返回200-299状态码：恢复可用
+                if (response.ok) {
+                  isChecking = false
+                  // 自动刷新WebView（强制从服务器加载）
+                  webview.reload(true)
+                  // 刷新后监听加载成功，确保恢复
+                  webview.addEventListener(
+                    'loaded',
+                    function onLoaded() {
+                      webview.removeEventListener('loaded', onLoaded) // 移除监听避免重复
+                    },
+                    false
+                  )
+                } else {
+                  // 服务器返回4xx/5xx（如启动中但未就绪）：继续检测
+                  retryCheck()
+                }
+              })
+              .catch((error) => {
+                // 网络错误（如服务器未启动、端口未开放）：继续检测
+                retryCheck()
+              })
+          }
+
+          // 重试逻辑：间隔递增，避免频繁请求
+          function retryCheck() {
+            checkCount++
+            // 间隔递增（1s→2s→4s→8s→10s，之后保持10s间隔）
+            currentInterval = Math.min(currentInterval * 2, maxInterval)
+            setTimeout(checkServer, currentInterval)
+          }
+
+          // 启动首次检测
+          checkServer()
+        }
       })
     </script>
   </body>

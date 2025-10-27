@@ -1,6 +1,6 @@
 {
     "@platforms" : [ "android", "iPhone", "iPad" ],
-    "id" : "H5DBC06DC", /*应用的标识*/
+    "id" : "H50BB650B", /*应用的标识*/
     "name" : "web-network", /*应用名称，程序桌面图标名称*/
     "version" : {
         "name" : "1.0", /*应用版本名称*/
@@ -57,7 +57,11 @@
             "usesCleartextTraffic" : true /* 允许HTTP请求（可选）*/
         },
         "webview" : {
-            "sslVerify" : false
+            "settings" : {
+                "javascriptEnabled" : true,
+                "domStorageEnabled" : true, // 启用DOM存储（部分页面依赖）
+                "allowFileAccess" : false
+            }
         },
         "splashscreen" : {
             "autoclose" : true, /*是否自动关闭程序启动界面，true表示应用加载应用入口页面后自动关闭；false则需调plus.navigator.closeSplashscreen()关闭*/
@@ -152,17 +156,13 @@
                     "xhdpi" : "", /*720P高分屏启动图片，分辨率：720x1242*/
                     "xxhdpi" : "" /*1080P高分屏启动图片，分辨率：1080x1882*/
                 }
+            },
+            "ios" : {
+                "dSYMs" : false
             }
         },
         "error" : {
             "url" : "error.html"
-        },
-        "webview": {
-          "settings": {
-            "javascriptEnabled": true,  
-            "domStorageEnabled": true,   // 启用DOM存储（部分页面依赖）
-            "allowFileAccess": false 
-          }
         }
     },
     "screenOrientation" : [ "portrait-primary" ],

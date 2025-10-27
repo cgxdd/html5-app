@@ -62,9 +62,6 @@ class IPScanner {
 
   updateProgress() {
     const percent = Math.round((this.scannedCount / this.totalCount) * 100)
-    document.getElementById(
-      'progress'
-    ).innerHTML = `已完成 ${this.scannedCount}/${this.totalCount} (${percent}%)`
     if (percent === 100) {
       this.callback(this.results.filter((item) => item.isActive))
       this.workerPool.forEach((work) => work.terminate())

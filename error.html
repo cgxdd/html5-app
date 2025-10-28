@@ -15,23 +15,31 @@
   </head>
   <body>
     <div class="error">服务错误，正在重试...</div>
+    <button id='back'>返回</button>
     <script>
-      document.addEventListener('plusready', function () {
-        // 1. 获取当前WebView实例
-        const currentWebview = plus.webview.currentWebview()
-        const originalUrl = currentWebview.getURL()
-        console.log(originalUrl)
-        function startServerCheck(url) {
+      document.addEventListener('plusready', function() {
+        document.getElementById('back').addEventListener('click', function () {
+          plus.webview.open('www/index.html')
+          window.location.href='www/index.html'//测试无效
+          plus.webview.currentWebview().close()
+        })
+        function startServerCheck() {
+          const ip = JSON.parse(window.localStorage.getItem('cache'))
           let checkCount = 0 // 检测次数计数
           // 检测服务器是否恢复可用
           function checkServer() {
             // 用HEAD请求轻量检测（比GET更高效，仅检查连接和状态码）
-            fetch(url, { method: 'HEAD' })
+            const url = `http://${ip}/landscape.html`
+            console.log('url', url)
+            fetch(url, {
+                method: 'HEAD'
+              })
               .then((response) => {
                 // 服务器返回200-299状态码：恢复可用
+                console.log('response', response.ok)
                 if (response.ok) {
+                  console.log('loading ok')
                   // 重新加载错误页面所在的webview
-                  currentWebview.reload()
                   window.location.href = url
                 } else {
                   // 服务器返回4xx/5xx（如启动中但未就绪）：继续检测
@@ -39,6 +47,7 @@
                 }
               })
               .catch((error) => {
+                console.log('error', error)
                 // 网络错误（如服务器未启动、端口未开放）：继续检测
                 retryCheck()
               })
@@ -47,10 +56,14 @@
           // 重试逻辑：间隔递增，避免频繁请求
           function retryCheck() {
             checkCount++
-            if (checkCount > 10) {
+            if (checkCount > 2) {
+              console.log('checkCount-----------', checkCount)
+              // window.location.href = 'www/index.html'
+              plus.webview.currentWebview().close()//会把APP 关闭，退出
+              // plus.webview.open('www/index.html')//不会跳转
               return false
             }
-
+            console.log('checkCount', checkCount)
             setTimeout(checkServer, 3000)
           }
 
@@ -58,7 +71,7 @@
           checkServer()
         }
 
-        startServerCheck(originalUrl)
+        startServerCheck()
       })
     </script>
   </body>

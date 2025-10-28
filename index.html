@@ -32,11 +32,12 @@
         })
 
         function vaildIP(val) {
-          console.log(val)
+
           checkUrlAvailability(`http://${val}/landscape.html`).then(
             (isAvailable) => {
               if (isAvailable) {
-                createServerWebview(val)
+                console.log(val)
+                window.localStorage.setItem('cache', JSON.stringify(val))
                 window.location.href = `http://${val}/landscape.html`
               }
             }
@@ -59,80 +60,6 @@
             console.error('检测失败:', error)
             return false
           }
-        }
-        //-------------------------------------------------------------------------
-        let isChecking = false
-
-        function createServerWebview(ip) {
-          if (!window.plus) {
-            return false
-          }
-          const serverWebview = plus.webview.create(
-            `http://${ip}/landscape.html`,
-            'serverPage', {
-              cachemode: 2, // 禁用缓存，避免加载旧错误页面
-              scalable: true,
-              errorPage: 'www/error.html'
-            }
-          )
-          serverWebview.onerror = function(e) {
-            console.log('页面加载错误：', e.message)
-
-            // 若未在检测中，启动服务器状态检测
-            if (!isChecking) {
-              startServerCheck(serverWebview, `http://${ip}/landscape.html`)
-            }
-          }
-          serverWebview.show()
-        }
-
-        function startServerCheck(webview, url) {
-          isChecking = true
-          let checkCount = 0 // 检测次数计数
-          const maxInterval = 10000 // 最大检测间隔（10秒）
-          let currentInterval = 1000 // 初始检测间隔（1秒）
-
-          // 检测服务器是否恢复可用
-          function checkServer() {
-            // 用HEAD请求轻量检测（比GET更高效，仅检查连接和状态码）
-            fetch(url, {
-                method: 'HEAD'
-              })
-              .then((response) => {
-                // 服务器返回200-299状态码：恢复可用
-                if (response.ok) {
-                  isChecking = false
-                  // 自动刷新WebView（强制从服务器加载）
-                  webview.reload(true)
-                  // 刷新后监听加载成功，确保恢复
-                  webview.addEventListener(
-                    'loaded',
-                    function onLoaded() {
-                      webview.removeEventListener('loaded', onLoaded) // 移除监听避免重复
-                    },
-                    false
-                  )
-                } else {
-                  // 服务器返回4xx/5xx（如启动中但未就绪）：继续检测
-                  retryCheck()
-                }
-              })
-              .catch((error) => {
-                // 网络错误（如服务器未启动、端口未开放）：继续检测
-                retryCheck()
-              })
-          }
-
-          // 重试逻辑：间隔递增，避免频繁请求
-          function retryCheck() {
-            checkCount++
-            // 间隔递增（1s→2s→4s→8s→10s，之后保持10s间隔）
-            currentInterval = Math.min(currentInterval * 2, maxInterval)
-            setTimeout(checkServer, currentInterval)
-          }
-
-          // 启动首次检测
-          checkServer()
         }
       })
     </script>

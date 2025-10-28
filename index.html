@@ -5,8 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title></title>
     <link rel="stylesheet" href="./css/index.css" />
-    <script type="module" src="./js/vconsole.js"></script>
-    <script type="module" defer src="./js/ip-scan.js"></script>
   </head>
   <body>
     <div class="box-container">
@@ -35,11 +33,11 @@
 
         function vaildIP(val) {
           console.log(val)
-          checkUrlAvailability(`https://${val}/landscape.html`).then(
+          checkUrlAvailability(`http://${val}/landscape.html`).then(
             (isAvailable) => {
               if (isAvailable) {
                 createServerWebview(val)
-                window.location.href = `https://${val}/landscape.html`
+                window.location.href = `http://${val}/landscape.html`
               }
             }
           )
@@ -70,7 +68,7 @@
             return false
           }
           const serverWebview = plus.webview.create(
-            `https://${ip}/landscape.html`,
+            `http://${ip}/landscape.html`,
             'serverPage', {
               cachemode: 2, // 禁用缓存，避免加载旧错误页面
               scalable: true,
@@ -82,7 +80,7 @@
 
             // 若未在检测中，启动服务器状态检测
             if (!isChecking) {
-              startServerCheck(serverWebview, `https://${ip}/landscape.html`)
+              startServerCheck(serverWebview, `http://${ip}/landscape.html`)
             }
           }
           serverWebview.show()
